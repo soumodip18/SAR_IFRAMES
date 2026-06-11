@@ -12,3 +12,13 @@ Partner organizations, NGOs, government agencies
 Research collaborators and institutional investors
 Impact:
 This repository serves as the single source of truth for digital dashboards, turning field data into actionable insights, strengthening SAR Ventures’ ecosystem credibility, and creating a modular, enterprise-ready technology layer that supports expansion and monetization.
+### Market Prices IFrame Dashboard
+
+**Path:** `/dashboards/market_prices.html`  
+
+**Description:** Dynamic IFrame dashboard showing variety-wise daily market prices. Users can select **market, commodity, and variety**, and the chart updates automatically.  
+
+**Embed Example:**
+
+```html
+<iframe src="https://sarventures.github.io/iframes/market_prices.html" width="1000" height="700"></iframe>
