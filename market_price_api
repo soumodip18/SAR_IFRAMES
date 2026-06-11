@@ -62,3 +62,52 @@ async function updateChart(){
 </script>
 </body>
 </html>
+
+const express = require('express');
+const fetch = require('node-fetch');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Your government resource key
+const GOV_RESOURCE_KEY = '35985678-0d79-46b4-9ed6-6f13308a1d24';
+
+// Public endpoint: fetch current + historical prices
+app.get('/market-prices', async (req, res) => {
+    try {
+        const state = req.query.state || '';
+        const district = req.query.district || '';
+        const commodity = req.query.commodity || '';
+        const variety = req.query.variety || '';
+        const limit = req.query.limit || 30;
+
+        // Build government API URL
+        const govUrl = `https://api.data.gov.in/resource/${GOV_RESOURCE_KEY}?format=json&api-key=579b464db6eec23bdd00001edd3946e44ce4aad720&filters[State]=${state}&filters[District]=${district}&filters[Commodity]=${commodity}&filters[Arrival_Date]=${variety}&limit=${limit}`;
+
+        const response = await fetch(govUrl);
+        const data = await response.json();
+
+        // Map relevant fields
+        const records = data.records.map(r => ({
+            date: r.Arrival_Date,
+            market: r.Market,
+            commodity: r.Commodity,
+            variety: r.Variety,
+            price: parseFloat(r.Price),
+            unit: r.Unit
+        }));
+
+        res.json({
+            status: 'success',
+            query: { state, district, commodity, variety },
+            data: records
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ status: 'error', message: 'Failed to fetch market prices' });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Market Prices API running on port ${PORT}`);
+});
