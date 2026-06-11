@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dynamic Market Prices</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial; background: #f5f5f5; }
+h2 { text-align: center; margin-top: 20px; }
+#controls { text-align:center; margin: 20px; }
+select { padding: 8px 12px; margin: 0 5px; font-size:16px; }
+#dashboard { width:95%; max-width:1200px; margin:20px auto; }
+canvas { background:#fff; border-radius:8px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+</style>
+</head>
+<body>
+<h2>Variety-wise Daily Market Prices</h2>
+
+<div id="controls">
+<select id="stateSelect"><option value="">State</option></select>
+<select id="districtSelect"><option value="">District</option></select>
+<select id="commoditySelect"><option value="Mango">Mango</option></select>
+<select id="varietySelect"><option value="Alphonso">Alphonso</option></select>
+</div>
+
+<div id="dashboard">
+<canvas id="marketChart"></canvas>
+</div>
+
+<script>
+const apiKey = '/resource/35985678-0d79-46b4-9ed6-6f13308a1d24'; 
+const chartCtx = document.getElementById('marketChart').getContext('2d');
+let marketChart;
+
+async function fetchMarketData(state,district,commodity,variety,limit=30){
+    const url = `https://data.gov.in/api/resource/35985678-0d79-46b4-9ed6-6f13308a1d24?api-key=${apiKey}&format=json&filters[State]=${state}&filters[District]=${district}&filters[Commodity]=${commodity}&filters[Arrival_Date]=${variety}&limit=${limit}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.records.map(r=>({date:r.Arrival_Date,price:parseFloat(r.Price)}));
+}
+
+async function updateChart(){
+    const state = document.getElementById('stateSelect').value;
+    const district = document.getElementById('districtSelect').value;
+    const commodity = document.getElementById('commoditySelect').value;
+    const variety = document.getElementById('varietySelect').value;
+    
+    if(!state || !district) return;
+    
+    const marketData = await fetchMarketData(state,district,commodity,variety);
+    const dates = marketData.map(d=>d.date);
+    const prices = marketData.map(d=>d.price);
+
+    const chartData = {labels:dates,datasets:[{label:`${commodity} (${variety})`,data:prices,borderColor:'#2a9d8f',backgroundColor:'rgba(42,157,143,0.2)',fill:true,tension:0.3}]};
+    
+    if(marketChart){marketChart.data=chartData;marketChart.update();}
+    else{marketChart=new Chart(chartCtx,{type:'line',data:chartData,options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:false}}}});}
+}
+
+// Add event listeners for dropdowns
+['stateSelect','districtSelect','commoditySelect','varietySelect'].forEach(id=>document.getElementById(id).addEventListener('change',updateChart));
+</script>
+</body>
+</html>
